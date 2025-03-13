@@ -3,7 +3,7 @@
 namespace Sibvic.plisioapi;
 public class PsilioApi(PsilioOptions options) : IPsilioApi
 {
-    public async Task<PsilioResponse<CreateNewInvoiceResponseData>?> CreateNewInvoice(string? currency, string orderName, long orderNumber, decimal? amount = null,
+    public async Task<PsilioResponse<CreateNewInvoiceResponseData>?> CreateNewInvoiceAsync(string? currency, string orderName, long orderNumber, decimal? amount = null,
         string? sourceCurrency = null, decimal? sourceAmount = null, string[]? allowedPsysCids = null, string? description = null, string? callbackUrl = null,
         string? successCallbackUrl = null, string? failCallbackUrl = null, string? successInvoiceUrl = null, string? failInvoiceUrl = null, string? email = null,
         string? redirectToInvoice = null, int? expireMin = null, bool? returnExisting = null)
@@ -39,6 +39,27 @@ public class PsilioApi(PsilioOptions options) : IPsilioApi
         if (result.StatusCode == System.Net.HttpStatusCode.OK)
         {
             return JsonConvert.DeserializeObject<PsilioResponse<CreateNewInvoiceResponseData>>(res);
+        }
+        var failData = JsonConvert.DeserializeObject<PsilioResponse<ResponseFailData>>(res);
+        throw new BadRequestException(failData.Data.Message);
+    }
+
+    public async Task<PsilioResponse<TransactionData>?> GetTransactionsAsync()
+    {
+        HttpClientHandler clientHandler = new()
+        {
+            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
+        };
+        var client = new HttpClient(clientHandler) { BaseAddress = new Uri("https://api.plisio.net") };
+        //https://api.plisio.net/?api_key=SECRET_KEY
+        List<string> parameters = [];
+        parameters.Add("api_key=" + options.Key);
+        
+        var result = await client.GetAsync("/api/v1/operations?" + string.Join("&", parameters));
+        var res = await result.Content.ReadAsStringAsync();
+        if (result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            return JsonConvert.DeserializeObject<PsilioResponse<TransactionData>>(res);
         }
         var failData = JsonConvert.DeserializeObject<PsilioResponse<ResponseFailData>>(res);
         throw new BadRequestException(failData.Data.Message);
