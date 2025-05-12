@@ -8,6 +8,10 @@ public class PsilioApi(PsilioOptions options) : IPsilioApi
         string? successCallbackUrl = null, string? failCallbackUrl = null, string? successInvoiceUrl = null, string? failInvoiceUrl = null, string? email = null,
         string? redirectToInvoice = null, int? expireMin = null, bool? returnExisting = null)
     {
+        if (string.IsNullOrEmpty(options.Key))
+        {
+            return null;
+        }
         HttpClientHandler clientHandler = new()
         {
             ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
@@ -46,6 +50,10 @@ public class PsilioApi(PsilioOptions options) : IPsilioApi
 
     public async Task<PsilioResponse<TransactionData>?> GetTransactionsAsync()
     {
+        if (string.IsNullOrEmpty(options.Key))
+        {
+            return null;
+        }
         HttpClientHandler clientHandler = new()
         {
             ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
